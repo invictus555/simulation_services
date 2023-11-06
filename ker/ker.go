@@ -42,7 +42,7 @@ func SDKFetchKerRuleGroupSimulationService(randomly bool) {
 		if err != nil || len(response) == 0 {
 			fmt.Println("Do http POST failed, err:", err)
 		} else {
-			fmt.Printf("Successfully:randomly:%v PSM:%-32s module:%-6s IP:%-48s--->\t%-48s\n", randomly, request.SdkHostPsm, request.ModuleName, addr, request.AddrIpv6)
+			fmt.Printf("Successfully[%s]:randomly:%v PSM:%-32s module:%-6s IP:%-48s--->\t%-48s\n", utils.GetNowTime(), randomly, request.SdkHostPsm, request.ModuleName, addr, request.AddrIpv6)
 		}
 		kerServiceStatus[addr] = err == nil // 记录ker服务是否有效
 	}
