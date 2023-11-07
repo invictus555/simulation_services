@@ -9,12 +9,12 @@ import (
 )
 
 func init() {
-	fetchSDKFetchRuleGroupRequestList()
+	fetchDataAssistance()
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		for {
 			<-ticker.C
-			fetchSDKFetchRuleGroupRequestList()
+			fetchDataAssistance()
 		}
 	}()
 }
@@ -32,18 +32,18 @@ func SDKFetchKerRuleGroupSimulationService(randomly bool) {
 			break
 		}
 
-		addr := getKerServiceHostAddr()
 		request := getSDKFetchRuleGroupRequest(randomly)
 		body, err := serializeSDKFetchRuleGroupRequest2JSON(request) // 序列化SDK Fetch RuleGroup的请求参数
 		if err != nil || len(body) == 0 {
 			continue
 		}
 
-		response, err := utils.DoHttpGetMethodV2(getAddrForFetchRuleGroup(addr), []byte(body))
+		url := "https://vip-boe-i18n.byted.org/ker/api/sdk/fetch_rule_groups"
+		response, err := utils.DoHttpGetMethodV2(url, []byte(body))
 		if err != nil || len(response) == 0 {
 			fmt.Println("Do http POST failed, err:", err)
 		} else {
-			fmt.Printf("SuccessfullyV2[%s]:randomly:%v PSM:%-32s module:%-6s IP:%-48s--->\t%-48s\n", utils.GetNowTime(), randomly, request.SdkHostPsm, request.ModuleName, addr, request.AddrIpv6)
+			fmt.Printf("Successfully[%s]:randomly:%v PSM:%-32s module:%-6s IP:%s\n", utils.GetNowTime(), randomly, request.SdkHostPsm, request.ModuleName, request.AddrIpv6)
 		}
 	}
 }

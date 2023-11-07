@@ -47,20 +47,22 @@ type DataAssistance struct {
 	RequestList []*SDKFetchRuleGroupRequest
 }
 
-func fetchSDKFetchRuleGroupRequestList() {
+func fetchDataAssistance() {
+	info := &DataAssistance{}
+	// kerHosts := newKerServiceHostAddrs()
+	// if len(kerHosts) == 0 {
+	// 	return
+	// } else {
+	// 	info.kerHosts = append(info.kerHosts, kerHosts...)
+	// }
+
 	ReuestList := newSDKFetchRuleGroupRequest()
 	if len(ReuestList) == 0 {
 		return
+	} else {
+		info.RequestList = append(info.RequestList, ReuestList...)
 	}
 
-	kerHosts := newKerServiceHostAddrs()
-	if len(kerHosts) == 0 {
-		return
-	}
-
-	info := &DataAssistance{}
-	info.kerHosts = append(info.kerHosts, kerHosts...)
-	info.RequestList = append(info.RequestList, ReuestList...)
 	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(dataAssistance))), *(*unsafe.Pointer)(unsafe.Pointer(&info))) // #nosec
 }
 
