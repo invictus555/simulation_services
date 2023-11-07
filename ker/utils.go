@@ -49,12 +49,12 @@ type DataAssistance struct {
 
 func fetchDataAssistance() {
 	info := &DataAssistance{}
-	// kerHosts := newKerServiceHostAddrs()
-	// if len(kerHosts) == 0 {
-	// 	return
-	// } else {
-	// 	info.kerHosts = append(info.kerHosts, kerHosts...)
-	// }
+	kerHosts := newKerServiceHostAddrs()
+	if len(kerHosts) == 0 {
+		return
+	} else {
+		info.kerHosts = append(info.kerHosts, kerHosts...)
+	}
 
 	ReuestList := newSDKFetchRuleGroupRequest()
 	if len(ReuestList) == 0 {
