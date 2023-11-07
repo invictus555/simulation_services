@@ -2,6 +2,7 @@ package ker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -14,8 +15,9 @@ import (
 )
 
 var (
-	counter       = -1 // 循环计数
-	requestAssist *RequestInfoAssist
+	counter             = -1 // 循环计数
+	requestAssist       *RequestInfoAssist
+	kerServiceHostAddrs []string
 )
 
 const (
@@ -44,6 +46,21 @@ type SDKFetchRuleGroupRequest struct {
 
 type RequestInfoAssist struct {
 	RequestList []*SDKFetchRuleGroupRequest
+}
+
+func fetchKerServiceHostAddr() {
+	idc := consul.IDC(env.IDC())
+	ipv6Endpoints, err := consulLookupIPV6(idc, "tiktok.vod.ker") // 解析ipv6
+	if err != nil {
+		panic(err)
+	}
+
+	if len(ipv6Endpoints.Addrs()) == 0 {
+		return
+	}
+
+	addrs := ipv6Endpoints.Addrs()
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(kerServiceHostAddrs))), *(*unsafe.Pointer)(unsafe.Pointer(&addrs))) // #nosec
 }
 
 func fetchSDKFetchRuleGroupRequestList() {
@@ -132,17 +149,13 @@ func serializeSDKFetchRuleGroupRequest2JSON(req *SDKFetchRuleGroupRequest) (stri
 	return string(body), err
 }
 
-// getKerServiceHostAddr consul解析ker服务并随机获取一个ipport
-func getKerServiceHostAddr() string {
-	idc := consul.IDC(env.IDC())
-	ipv6Endpoints, err := consulLookupIPV6(idc, "tiktok.vod.ker") // 解析ipv6
-	if err != nil {
-		panic(err)
+func getKerServiceHostAddr() (string, error) {
+	if len(kerServiceHostAddrs) == 0 {
+		return "", errors.New("ker hosts are empty")
 	}
-
 	rand.Seed(time.Now().UnixNano()) // 初始化随机数种子
-	index := rand.Intn(len(ipv6Endpoints))
-	return ipv6Endpoints[index].Addr
+	index := rand.Intn(len(kerServiceHostAddrs))
+	return kerServiceHostAddrs[index], nil
 }
 
 // getAddrForFetchRuleGroup构造请求地址

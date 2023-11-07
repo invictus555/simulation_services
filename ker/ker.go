@@ -8,11 +8,13 @@ import (
 )
 
 func init() {
+	fetchKerServiceHostAddr()
 	fetchSDKFetchRuleGroupRequestList()
 	go func() {
-		ticker := time.NewTicker(3 * time.Second)
+		ticker := time.NewTicker(10 * time.Second)
 		for {
 			<-ticker.C
+			fetchKerServiceHostAddr()
 			fetchSDKFetchRuleGroupRequestList()
 		}
 	}()
@@ -26,15 +28,18 @@ func SDKFetchKerRuleGroupSimulationService(randomly bool) {
 			break
 		}
 
-		addr := getKerServiceHostAddr()
-		url := getAddrForFetchRuleGroup(addr)
+		addr, err := getKerServiceHostAddr()
+		if err != nil || len(addr) == 0 {
+			continue
+		}
+
 		request := getSDKFetchRuleGroupRequest(randomly)
 		body, err := serializeSDKFetchRuleGroupRequest2JSON(request) // 序列化SDK Fetch RuleGroup的请求参数
 		if err != nil || len(body) == 0 {
 			continue
 		}
 
-		response, err := utils.DoHttpGetMethodV2(url, []byte(body))
+		response, err := utils.DoHttpGetMethodV2(getAddrForFetchRuleGroup(addr), []byte(body))
 		if err != nil || len(response) == 0 {
 			fmt.Println("Do http POST failed, err:", err)
 		} else {
