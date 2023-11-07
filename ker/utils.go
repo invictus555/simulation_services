@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	counter          = -1 // 循环计数
-	requestAssist    *RequestInfoAssist
-	kerServiceStatus = make(map[string]bool, 0)
+	counter       = -1 // 循环计数
+	requestAssist *RequestInfoAssist
 )
 
 const (
@@ -159,7 +158,7 @@ func getAddrForFetchRuleGroup(addr string) string {
 // getSDKFetchRuleGroupRequest [随机地/顺序地] 获取request参数
 func getSDKFetchRuleGroupRequest(randomly bool) *SDKFetchRuleGroupRequest {
 	index := 0           // 记录随机访问的下标
-	sleepTimeSecond := 1 // 默认sleep 1s
+	sleepTimeSecond := 0 // 默认sleep 1s
 	maxIndex := len(requestAssist.RequestList)
 
 	if randomly {
@@ -171,7 +170,7 @@ func getSDKFetchRuleGroupRequest(randomly bool) *SDKFetchRuleGroupRequest {
 	}
 
 	request := requestAssist.RequestList[index] // 获取一个服务实例的请求参数
-	if request != nil {
+	if request != nil && sleepTimeSecond > 0 {
 		time.Sleep(time.Second * time.Duration(sleepTimeSecond))
 	}
 	return request

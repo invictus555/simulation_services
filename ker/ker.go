@@ -27,10 +27,6 @@ func SDKFetchKerRuleGroupSimulationService(randomly bool) {
 		}
 
 		addr := getKerServiceHostAddr()
-		if val, ok := kerServiceStatus[addr]; ok && !val { // 无效ker服务
-			continue
-		}
-
 		url := getAddrForFetchRuleGroup(addr)
 		request := getSDKFetchRuleGroupRequest(randomly)
 		body, err := serializeSDKFetchRuleGroupRequest2JSON(request) // 序列化SDK Fetch RuleGroup的请求参数
@@ -44,6 +40,5 @@ func SDKFetchKerRuleGroupSimulationService(randomly bool) {
 		} else {
 			fmt.Printf("Successfully[%s]:randomly:%v PSM:%-32s module:%-6s IP:%-48s--->\t%-48s\n", utils.GetNowTime(), randomly, request.SdkHostPsm, request.ModuleName, addr, request.AddrIpv6)
 		}
-		kerServiceStatus[addr] = err == nil // 记录ker服务是否有效
 	}
 }
