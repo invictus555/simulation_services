@@ -55,11 +55,8 @@ func fetchKerServiceHostAddr() {
 		panic(err)
 	}
 
-	if len(ipv6Endpoints.Addrs()) == 0 {
-		return
-	}
-
-	addrs := ipv6Endpoints.Addrs()
+	var addrs []string
+	addrs = append(addrs, ipv6Endpoints.Addrs()...)
 	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(kerServiceHostAddrs))), *(*unsafe.Pointer)(unsafe.Pointer(&addrs))) // #nosec
 }
 
