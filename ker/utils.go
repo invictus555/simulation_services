@@ -2,7 +2,6 @@ package ker
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -15,9 +14,8 @@ import (
 )
 
 var (
-	counter             = -1 // 循环计数
-	requestAssist       *RequestInfoAssist
-	kerServiceHostAddrs []string
+	counter       = -1 // 循环计数
+	requestAssist *RequestInfoAssist
 )
 
 const (
@@ -45,19 +43,8 @@ type SDKFetchRuleGroupRequest struct {
 }
 
 type RequestInfoAssist struct {
+	kerHosts    []string
 	RequestList []*SDKFetchRuleGroupRequest
-}
-
-func fetchKerServiceHostAddr() {
-	idc := consul.IDC(env.IDC())
-	ipv6Endpoints, err := consulLookupIPV6(idc, "tiktok.vod.ker") // 解析ipv6
-	if err != nil {
-		panic(err)
-	}
-
-	var addrs []string
-	addrs = append(addrs, ipv6Endpoints.Addrs()...)
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(kerServiceHostAddrs))), *(*unsafe.Pointer)(unsafe.Pointer(&addrs))) // #nosec
 }
 
 func fetchSDKFetchRuleGroupRequestList() {
@@ -66,9 +53,25 @@ func fetchSDKFetchRuleGroupRequestList() {
 		return
 	}
 
+	kerHosts := newKerServiceHostAddrs()
+	if len(kerHosts) == 0 {
+		return
+	}
+
 	info := &RequestInfoAssist{}
+	info.kerHosts = append(info.kerHosts, kerHosts...)
 	info.RequestList = append(info.RequestList, ReuestList...)
 	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(requestAssist))), *(*unsafe.Pointer)(unsafe.Pointer(&info))) // #nosec
+}
+
+func newKerServiceHostAddrs() []string {
+	idc := consul.IDC(env.IDC())
+	ipv6Endpoints, err := consulLookupIPV6(idc, "tiktok.vod.ker") // 解析ipv6
+	if err != nil {
+		panic(err)
+	}
+
+	return ipv6Endpoints.Addrs()
 }
 
 func newSDKFetchRuleGroupRequest() []*SDKFetchRuleGroupRequest {
@@ -146,15 +149,6 @@ func serializeSDKFetchRuleGroupRequest2JSON(req *SDKFetchRuleGroupRequest) (stri
 	return string(body), err
 }
 
-func getKerServiceHostAddr() (string, error) {
-	if len(kerServiceHostAddrs) == 0 {
-		return "", errors.New("ker hosts are empty")
-	}
-	rand.Seed(time.Now().UnixNano()) // 初始化随机数种子
-	index := rand.Intn(len(kerServiceHostAddrs))
-	return kerServiceHostAddrs[index], nil
-}
-
 // getAddrForFetchRuleGroup构造请求地址
 func getAddrForFetchRuleGroup(addr string) string {
 	ip, port, err := net.SplitHostPort(addr)
@@ -163,6 +157,12 @@ func getAddrForFetchRuleGroup(addr string) string {
 	}
 
 	return fmt.Sprintf("http://%s:%s/ker/api/sdk/fetch_rule_groups", ip, port)
+}
+
+func getKerServiceHostAddr() string {
+	maxIndex := len(requestAssist.kerHosts)
+	index := rand.Intn(maxIndex)
+	return requestAssist.kerHosts[index]
 }
 
 // getSDKFetchRuleGroupRequest [随机地/顺序地] 获取request参数

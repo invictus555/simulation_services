@@ -2,19 +2,18 @@ package ker
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"simulation_services/utils"
 )
 
 func init() {
-	fetchKerServiceHostAddr()
 	fetchSDKFetchRuleGroupRequestList()
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		for {
 			<-ticker.C
-			fetchKerServiceHostAddr()
 			fetchSDKFetchRuleGroupRequestList()
 		}
 	}()
@@ -22,17 +21,14 @@ func init() {
 
 // SDKFetchKerRuleGroupSimulationService 模拟调用ker服务[机房粒度]
 func SDKFetchKerRuleGroupSimulationService(randomly bool) {
+	rand.Seed(time.Now().UnixNano()) // 初始化随机数种子
 	for {
-		if requestAssist == nil || len(requestAssist.RequestList) == 0 {
+		if requestAssist == nil || len(requestAssist.RequestList) == 0 || len(requestAssist.kerHosts) == 0 {
 			fmt.Println("request parameters is empty")
 			break
 		}
 
-		addr, err := getKerServiceHostAddr()
-		if err != nil || len(addr) == 0 {
-			continue
-		}
-
+		addr := getKerServiceHostAddr()
 		request := getSDKFetchRuleGroupRequest(randomly)
 		body, err := serializeSDKFetchRuleGroupRequest2JSON(request) // 序列化SDK Fetch RuleGroup的请求参数
 		if err != nil || len(body) == 0 {
