@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	counter       = -1 // 循环计数
-	requestAssist *RequestInfoAssist
+	counter        = -1 // 循环计数
+	dataAssistance *DataAssistance
 )
 
 const (
@@ -42,7 +42,7 @@ type SDKFetchRuleGroupRequest struct {
 	ClusterName string `json:"cluster_name"`
 }
 
-type RequestInfoAssist struct {
+type DataAssistance struct {
 	kerHosts    []string
 	RequestList []*SDKFetchRuleGroupRequest
 }
@@ -58,10 +58,10 @@ func fetchSDKFetchRuleGroupRequestList() {
 		return
 	}
 
-	info := &RequestInfoAssist{}
+	info := &DataAssistance{}
 	info.kerHosts = append(info.kerHosts, kerHosts...)
 	info.RequestList = append(info.RequestList, ReuestList...)
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(requestAssist))), *(*unsafe.Pointer)(unsafe.Pointer(&info))) // #nosec
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&(dataAssistance))), *(*unsafe.Pointer)(unsafe.Pointer(&info))) // #nosec
 }
 
 func newKerServiceHostAddrs() []string {
@@ -160,16 +160,16 @@ func getAddrForFetchRuleGroup(addr string) string {
 }
 
 func getKerServiceHostAddr() string {
-	maxIndex := len(requestAssist.kerHosts)
+	maxIndex := len(dataAssistance.kerHosts)
 	index := rand.Intn(maxIndex)
-	return requestAssist.kerHosts[index]
+	return dataAssistance.kerHosts[index]
 }
 
 // getSDKFetchRuleGroupRequest [随机地/顺序地] 获取request参数
 func getSDKFetchRuleGroupRequest(randomly bool) *SDKFetchRuleGroupRequest {
 	index := 0           // 记录随机访问的下标
 	sleepTimeSecond := 0 // 默认sleep 1s
-	maxIndex := len(requestAssist.RequestList)
+	maxIndex := len(dataAssistance.RequestList)
 
 	if randomly {
 		index = rand.Intn(maxIndex) // 生成随机整数0~maxIndex-1
@@ -179,7 +179,7 @@ func getSDKFetchRuleGroupRequest(randomly bool) *SDKFetchRuleGroupRequest {
 		index = counter % maxIndex // 顺序性获取参数
 	}
 
-	request := requestAssist.RequestList[index] // 获取一个服务实例的请求参数
+	request := dataAssistance.RequestList[index] // 获取一个服务实例的请求参数
 	if request != nil && sleepTimeSecond > 0 {
 		time.Sleep(time.Second * time.Duration(sleepTimeSecond))
 	}
