@@ -29,6 +29,7 @@ var moduleWithPsmList = map[string][]string{
 	},
 	"image": {
 		"tiktok.vod.ker",
+		"tiktok.image.pack",
 	},
 }
 
